@@ -1,8 +1,12 @@
 ﻿using CoreStudentWebAPI.DataAccessLayer.Models;
 using CoreStudentWebAPI.DataAccessLayer.Services;
+using CoreStudentWebAPI.Filters;
 using CoreStudentWebAPI.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.IdentityModel.Protocols;
+using System.Diagnostics;
 
 namespace CoreStudentWebAPI.Controllers
 {
@@ -18,7 +22,8 @@ namespace CoreStudentWebAPI.Controllers
 
         [HttpGet]
         [Route("GetStudents")]
-        public ActionResult<List<Student>> GetStudents()
+        //[ServiceFilter(typeof(LogFilterAttribute))]
+        public ActionResult<List<Student>> Get()
         {
             try
             {
@@ -33,24 +38,24 @@ namespace CoreStudentWebAPI.Controllers
 
         [HttpGet]
         [Route("GetStudentById/{id}")]
-        public ActionResult<List<Student>> GetStudentById(int id)
+        public Student GetById(int id)
         {
+            Student student = new Student();
             try
             {
-                var student = _studentRepository.GetById(id);
-                if(student == null || student.StudentId == 0)
-                    return NoContent();
-                return Ok(student);
+                student = _studentRepository.GetById(id);
+                //if (student == null || student.StudentId == 0)
             }
             catch (Exception exception)
             {
-                return BadRequest(exception.Message);
+                //
             }
+            return student;
         }
 
         [HttpPost]
-        [Route("SaveStudent")]
-        public ActionResult<List<Student>> SaveStudent(Student student)
+        [Route("SaveStudentComplex")]
+        public ActionResult<List<Student>> SaveStudentComplex(Student student)
         {
             try
             {
@@ -62,5 +67,29 @@ namespace CoreStudentWebAPI.Controllers
                 return BadRequest(exception.Message);
             }
         }
+
+        [HttpPost]
+        [Route("SaveStudentPremitive")]
+        public ActionResult<List<Student>> SaveStudentPremitive(string firstName, string middleName, string lastName, DateTime dateOdBirth, string gender)
+        {
+            Student student = new Student()
+            {
+                FirstName = firstName,
+                MiddleName = middleName,
+                LastName = lastName,
+                DateOfBirth = dateOdBirth,
+                Gender = gender
+            };
+            try
+            {
+                var result = _studentRepository.Post(student);
+                return Ok(result);
+            }
+            catch (Exception exception)
+            {
+                return BadRequest(exception.Message);
+            }
+        }
+       
     }
 }
